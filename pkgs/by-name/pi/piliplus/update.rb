@@ -41,14 +41,14 @@ def json_write filename, object
   File.open(filename, 'w') { _1.puts JSON.pretty_generate object }
 end
 
-owner = package_attr 'src.owner'
-repo = package_attr 'src.repo'
+owner = "bggRGjQaUbCoE"
+repo = "PiliPlus"
 git_url = "https://github.com/#{owner}/#{repo}.git"
 
 old_version = package_attr 'version'
-old_rev = package_attr 'src.rev'
-old_hash = package_attr 'src.outputHash'
-log "Current version: #{old_version} #{old_rev} #{old_hash}"
+src_info_path = File.join(__dir__, 'src-info.json')
+old_src_info = JSON.load_file src_info_path rescue abort "Failed to read #{src_info_path}"
+log "Current version: #{old_version} #{old_src_info['rev']} #{old_src_info['hash']}"
 
 new_version = github_api("/repos/#{owner}/#{repo}/releases/latest")['tag_name'] or abort "No `tag_name` field in GitHub response"
 finish "Already up-to-date" if new_version == old_version
@@ -60,9 +60,8 @@ _, commit_links = github_api "/repos/#{owner}/#{repo}/commits?sha=#{new_rev}&per
 git_count = commit_links[/[&?]page=(\d+)>; rel="last"/, 1]&.to_i
 abort "Cannot determine git commit count from GitHub response" unless git_count
 
-nix_filename = package_attr('meta.position')[/([^:]+):\d+/, 1] or abort "Failed to find the Nix file to be updated"
-nix_dir = File.dirname nix_filename
-src_info_path = File.join nix_dir, 'src-info.json'
+nix_filename = File.join(__dir__, 'package.nix')
+nix_dir = __dir__
 json_write src_info_path, {
   rev: new_rev,
   revCount: git_count,
