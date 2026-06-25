@@ -18,7 +18,7 @@
 let
   srcInfo = lib.importJSON ./src-info.json;
   description = "Third-party Bilibili client developed in Flutter";
-  version = "2.0.7.2";
+  version = "2.0.9.2";
 
   linux = flutter341.buildFlutterApplication {
     pname = "piliplus";
@@ -109,7 +109,7 @@ let
 
     src = fetchurl {
       url = "https://github.com/bggRGjQaUbCoE/PiliPlus/releases/download/${version}/PiliPlus_macos_${dmgVersion}%2B${toString srcInfo.revCount}.dmg";
-      hash = "sha256-JWqyqe48Ds0GTuDuOxW3FldlKwbEiowDd8Wr/tOVNxE=";
+      hash = "sha256-vpAiFDVngNNkskAjy8aPOvETv3ysx54Z72Orww+JToo=";
     };
 
     nativeBuildInputs = [
