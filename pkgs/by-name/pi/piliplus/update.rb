@@ -73,6 +73,18 @@ log "Updated #{src_info_path}"
 File.write nix_filename, File.read(nix_filename).sub(old_version, new_version)
 log "Updated #{nix_filename}"
 
+dmg_version = new_version.split('.')[0..-2].join('.')
+dmg_url = "https://github.com/#{owner}/#{repo}/releases/download/#{new_version}/PiliPlus_macos_#{dmg_version}%2B#{git_count}.dmg"
+log "DMG URL: #{dmg_url}"
+stdout, status = Open3.capture2 'nix-prefetch-url', dmg_url
+abort "Failed to prefetch macOS DMG: #{stdout}" unless status.success?
+stdout, status = Open3.capture2 'nix', 'hash', 'convert', '--hash-algo', 'sha256', '--to', 'sri', stdout.strip
+abort "Failed to convert DMG hash to SRI" unless status.success?
+dmg_hash = stdout.strip
+log "New DMG hash: #{dmg_hash}"
+File.write nix_filename, File.read(nix_filename).sub(/hash = "sha256-[^"]+"/, %(hash = "#{dmg_hash}"))
+log "Updated DMG hash in #{nix_filename}"
+
 pubspec_lock_path = File.join nix_dir, 'pubspec.lock.json'
 old_pubspec_lock = JSON.load_file pubspec_lock_path rescue abort "Failed to read #{pubspec_lock_path}"
 new_pubspec_lock = YAML.load_file File.join src_path, 'pubspec.lock' rescue abort "Failed to read pubspec.lock"
